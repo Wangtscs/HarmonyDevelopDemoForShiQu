@@ -1,19 +1,41 @@
+import { router } from '@kit.ArkUI';
+
 @Entry
 @Component
 struct Index {
   @State message: string = 'Hello World';
 
   build() {
-    RelativeContainer() {
-      Text(this.message)
-        .id('HelloWorld')
-        .fontSize(50)
-        .fontWeight(FontWeight.Bold)
-        .alignRules({
-          center: { anchor: '__container__', align: VerticalAlign.Center },
-          middle: { anchor: '__container__', align: HorizontalAlign.Center }
+    Column({ space: 30 }) {
+      Text('鸿蒙代码实战')
+        .fontSize(20)
+      Column({ space: 20 }) {
+        Column({ space: 5 }) {
+          Text("第一个任务点:")
+            .fontSize(16)
+          Text("适趣我爱说 - 编辑信息页面")
+            .fontSize(16)
+        }
+        .width("100%")
+        .padding({
+          top: 20,
+          left: 20,
+          bottom: 20,
+          right: 20
         })
+        .alignItems(HorizontalAlign.Start)
+        .backgroundColor("#fff6f4f4")
+        .borderRadius(20)
+        .border({width:1,color:"#ffecdfdf"})
+        .onClick(()=>{
+          router.pushUrl({
+            url:'pages/InformationChangePage'
+          })
+        })
+      }
+      .width("90%")
     }
+    .padding({ top: 20 })
     .height('100%')
     .width('100%')
   }
