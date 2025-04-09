@@ -1,4 +1,4 @@
-import { promptAction } from '@kit.ArkUI';
+import { promptAction, router } from '@kit.ArkUI';
 
 @Entry
 @Component
@@ -35,9 +35,12 @@ struct InformationChangePage {
       Row() {
         Image($r('app.media.icon_back_arrow_black'))
           .width(20)
+          .onClick(() => {
+            router.back()
+          })
         Text("编辑信息")
           .fontSize(18)
-          // .fontWeight(FontWeight.Regular)
+        // .fontWeight(FontWeight.Regular)
         Blank()
           .width(20)
       }
@@ -106,7 +109,7 @@ struct InformationChangePage {
         Column({ space: 10 }) {
           Text("昵称")
             .fontSize(16)
-          TextInput({ placeholder: "来填写你的昵称吧~" ,text:this.nickName})
+          TextInput({ placeholder: "来填写你的昵称吧~", text: this.nickName })
             .onChange((value: string) => {
               this.nickName = value
             })
@@ -149,7 +152,8 @@ struct InformationChangePage {
           })
           .onClick(() => {
             promptAction.showDialog({
-              message: `${this.nickName} 是一位 ${this.isMaleSelected ? '男生' : '女生'}，${this.isMaleSelected ? '他' : '她'} 的生日是 ${this.selectedDate}`
+              message: `${this.nickName} 是一位 ${this.isMaleSelected ? '男生' : '女生'}，${this.isMaleSelected ? '他' :
+                '她'} 的生日是 ${this.selectedDate}`
             })
           })
       }
