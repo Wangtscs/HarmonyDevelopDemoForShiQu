@@ -55,6 +55,29 @@ struct Index {
             url: 'pages/LibraryPage'
           })
         })
+
+        Column({ space: 5 }) {
+          Text("任务点三:")
+            .fontSize(16)
+          Text("适趣文常知识-读一读")
+            .fontSize(16)
+        }
+        .width("100%")
+        .padding({
+          top: 20,
+          left: 20,
+          bottom: 20,
+          right: 20
+        })
+        .alignItems(HorizontalAlign.Start)
+        .backgroundColor("#fff6f4f4")
+        .borderRadius(20)
+        .border({ width: 1, color: "#ffecdfdf" })
+        .onClick(() => {
+          router.pushUrl({
+            url: 'pages/ReadCulturalKnowledgePage'
+          })
+        })
       }
       .width("90%")
     }

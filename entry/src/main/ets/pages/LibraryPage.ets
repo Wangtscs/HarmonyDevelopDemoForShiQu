@@ -1,20 +1,27 @@
+import { http } from '../utils'
+import { promptAction } from '@kit.ArkUI';
+
+interface articlesTypeList {
+  id: number;
+  title: string;
+  wordNum: number;
+  lexile: number;
+  typeId: number;
+  type: string;
+  cover: string;
+  clickRatio: null;
+  accuracy: null;
+  accuracyRatio: null;
+  color: string;
+  isRead: number;
+  readTime: null;
+  stage: string;
+  perception: null;
+}
+
 interface articlesType {
-  id: number
-  title: string
-  wordNum: number
-  lexile: number
-  typeId: number
-  type: string
-  // "cover": "https://shiqu-img.qn.zhilehuo.com/advEnglish/classify/0_1724749220965_339.jpg?imageMogr2/gravity/Center/crop/1024x770",
-  cover: string
-  clickRatio: null
-  accuracy: null
-  accuracyRatio: null
-  color: null
-  isRead: number
-  readTime: null
-  stage: string
-  perception: null
+  total: number
+  list: articlesTypeList[]
 }
 
 interface articleTypeListSty {
@@ -22,123 +29,126 @@ interface articleTypeListSty {
   type: string
 }
 
-
 @Entry
 @Component
 struct LibraryPage {
   @State selectedDifficulty: number = 5; // 默认选中的难度值
   @State selectedArticleTip: string = "精选阅读"
+  @State selectedArticleTipID: number = 0
+  @State currentPage: number = 1;
   @State categories: articleTypeListSty[] = [
     {
       "id": 0,
       "type": "精选阅读"
-    },
-    {
-      "id": 1,
-      "type": "人工智能"
-    },
-    {
-      "id": 2,
-      "type": "前沿技术"
-    },
-    {
-      "id": 3,
-      "type": "太空宇宙"
-    },
-    {
-      "id": 4,
-      "type": "生物医疗"
-    },
-    {
-      "id": 5,
-      "type": "自然科学"
-    },
-    {
-      "id": 6,
-      "type": "环境生态"
-    },
-    {
-      "id": 7,
-      "type": "历史文化"
-    },
-    {
-      "id": 8,
-      "type": "艺术文学"
-    },
-    {
-      "id": 9,
-      "type": "休闲生活"
-    },
-    {
-      "id": 10,
-      "type": "社会现象"
-    },
-    {
-      "id": 11,
-      "type": "成长教育"
-    },
-    {
-      "id": 12,
-      "type": "心理情感"
-    },
-    {
-      "id": 13,
-      "type": "动物趣闻"
-    },
-    {
-      "id": 14,
-      "type": "传统文化"
     }
   ];
-  @State articles: articlesType[] = [{
-    "id": 4976,
-    "title": " The Principles and Applications of Quantum Computers",
-    "wordNum": 337,
-    "lexile": 650,
-    "typeId": 2,
-    "type": "前沿技术",
-    "cover": "https://shiqu-img.qn.zhilehuo.com/advEnglish/classify/0_1724749220965_339.jpg?imageMogr2/gravity/Center/crop/1024x770",
-    "clickRatio": null,
-    "accuracy": null,
-    "accuracyRatio": null,
-    "color": null,
-    "isRead": 0,
-    "readTime": null,
-    "stage": "18+",
-    "perception": null
-  },
-    {
-      "id": 5021,
-      "title": " Basic Concepts of Quantum Mechanics",
-      "wordNum": 413,
-      "lexile": 650,
-      "typeId": 2,
-      "type": "前沿技术",
-      "cover": "https://shiqu-img.qn.zhilehuo.com/advEnglish/classify/0_1724749360513_601.jpg?imageMogr2/gravity/Center/crop/1024x770",
-      "clickRatio": null,
-      "accuracy": null,
-      "accuracyRatio": null,
-      "color": null,
-      "isRead": 0,
-      "readTime": null,
-      "stage": "18+",
-      "perception": null
-    },];
-  @State selectList: number[] =
-    [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135,
-      140, 145, 150, 155, 160, 165, 170, 175, 180, 185, 190, 195, 200, 205, 210, 215, 220, 225, 230, 235, 240, 245, 250,
-      255, 260, 265, 270, 275, 280, 285, 290, 295, 300, 305, 310, 315, 320, 325, 330, 335, 340, 345, 350, 355, 360, 365,
-      370, 375, 380, 385, 390, 395, 400, 405, 410, 415, 420, 425, 430, 435, 440, 445, 450, 455, 460, 465, 470, 475, 480,
-      485, 490, 495, 500, 505, 510, 515, 520, 525, 530, 535, 540, 545, 550, 555, 560, 565, 570, 575, 580, 585, 590, 595,
-      600, 605, 610, 615, 620, 625, 630, 635, 640, 645, 650, 655, 660, 665, 670, 675, 680, 685, 690, 695, 700, 705, 710,
-      715, 720, 725, 730, 735, 740, 745, 750, 755, 760, 765, 770, 775, 780, 785, 790, 795, 800]
-  private controller: TabsController = new TabsController()
-  scroller: Scroller = new Scroller()
+  @State articlesList: articlesTypeList[] = []
+  @State selectList: number[] = []
+  @State articleTotal: number = 0
 
+  scroller: Scroller = new Scroller()
+  @State isRefreshing: boolean = false
+  // 加载中
+  @State isLoading: boolean = false
+  // 数据加载完毕
+  @State isFinished: boolean = false
+
+  async getArticleTypeList() {
+    const res = await http.request<articleTypeListSty[]>({
+      url: "library/articleTypeList"
+    })
+    for (let index = 0; index < res.length; index++) {
+      const element = res[index];
+      this.categories.push(element)
+    }
+  }
+
+  async getSelectList() {
+    const res = await http.request<number[]>({
+      url: "appArticle/selectList"
+    })
+    this.selectList = res
+  }
+
+  async getArticleList() {
+    try {
+      const res = await http.request<articlesType>({
+        url: "library/articleList",
+        params: {
+          lexile: this.selectedDifficulty,
+          typeId: this.categories[this.selectedArticleTipID].id,
+          page: this.currentPage,
+          size: 10,
+        },
+        headers: {
+          "Cookie": "sid=OFvEbpyl4PyKkc/cSjl2tW3g5Ga/z5DPSQRGQn8mJBs="
+        }
+      })
+
+      const articles = res
+      this.articleTotal = res.total
+      for (let index = 0; index < articles.list.length; index++) {
+        const element = articles.list[index];
+        this.articlesList.push(element)
+      }
+    } catch (e) {
+      console.log("HTTP请求失败:", e, JSON.stringify(e))
+    }
+  }
+
+  aboutToAppear(): void {
+    this.getArticleTypeList()
+    this.getSelectList()
+    this.getArticleList()
+  }
+
+  // 下拉刷新加载
+  async onRefresh() {
+    this.articlesList = []
+    this.currentPage = 0
+    this.getArticleList()
+    this.isRefreshing = false
+    promptAction.showToast({ message: '更新成功' })
+  }
+
+  // 文章卡片颜色修改
+  cardTypeColor(typeId: number): string {
+    switch (typeId) {
+      case 1:
+        return "#46D8B4";
+      case 2:
+        return "#01ACA6";
+      case 3:
+        return "#7C7EE5";
+      case 4:
+        return "#36C5FD";
+      case 5:
+        return "#6CD601";
+      case 6:
+        return "#FE9601";
+      case 7:
+        return "#D3B17D";
+      case 8:
+        return "#F6637F";
+      case 9:
+        return "#7ED3DA";
+      case 10:
+        return "#CB95D9";
+      case 11:
+        return "#3BBC83";
+      case 12:
+        return "#DD49B7";
+      case 13:
+        return "#A08D40";
+      default:
+        return "#09744A";
+    }
+  }
   build() {
     Column() {
       Column() {
         // 标题
+
         Row() {
           Text('文库')
             .fontSize(16)// .fontWeight(FontWeight.Bold)
@@ -148,8 +158,8 @@ struct LibraryPage {
         }
         .width("100%")
         .radialGradient({
-          center: [140, -50],
-          radius: 180,
+          center: [140, -100],
+          radius: 250,
           colors: [[0xFFE5F3FE, 0.0], [0xFFE8FCFB, 0.4], [0xFFFEFFFF, 1.0]]
         })
         // 将颜色渲染衍生至状态栏
@@ -176,8 +186,10 @@ struct LibraryPage {
                 .backgroundColor(this.selectedArticleTip == item.type ? "#FFFFFF" : "#F1F0F5")
                 .fontColor(this.selectedArticleTip == item.type ? "#1A8BE9" : "#98979C")
                 .onClick(() => {
+                  this.articlesList = []
                   this.selectedArticleTip = item.type
-                  console.log("itcast_interview_pass+", 'LibraryPage', '106', item.type)
+                  this.selectedArticleTipID = item.id
+                  this.getArticleList()
                 })
               } else {
                 Button({ type: ButtonType.Normal, stateEffect: true }) {
@@ -192,8 +204,10 @@ struct LibraryPage {
                 .backgroundColor(this.selectedArticleTip == item.type ? "#FFFFFF" : "#F1F0F5")
                 .fontColor(this.selectedArticleTip == item.type ? "#1A8BE9" : "#98979C")
                 .onClick(() => {
+                  this.articlesList = []
                   this.selectedArticleTip = item.type
-                  console.log("itcast_interview_pass+", 'LibraryPage', '106', item.type)
+                  this.selectedArticleTipID = item.id
+                  this.getArticleList()
                 })
               }
 
@@ -231,7 +245,9 @@ struct LibraryPage {
                     .fontColor(this.selectedDifficulty === item ? '#288AD1' : '#969799')
                     .borderRadius(25)
                     .onClick(() => {
+                      this.articlesList = []
                       this.selectedDifficulty = item;
+                      this.getArticleList()
                     })
                   })
                 }
@@ -246,13 +262,42 @@ struct LibraryPage {
             .padding({ left: 5 })
 
             // 文章展示
-            List({ space: 20 }) {
-              ForEach(this.articles, (item: articlesType) => {
-                ListItem() {
-                  this.ArticleCardListItem(item.cover, item.title, item.lexile, item.wordNum, item.stage, item.type)
+            Refresh({ refreshing: $$this.isRefreshing }) {
+              List({ space: 20 }) {
+                if (this.articlesList.length <= 0) {
+                  ListItem() {
+                    Column() {
+                      Text("当前难度下没有该类文章，请选择其他难度值")
+                        .fontSize(14)
+                        .fontColor("#ffc6c6c6")
+                    }
+                    .height("80%")
+                    .justifyContent(FlexAlign.Center)
+                    .alignItems(HorizontalAlign.Center)
+                  }
+                } else {
+                  ForEach(this.articlesList, (item: articlesTypeList) => {
+                    ListItem() {
+                      this.ArticleCardListItem(item.cover, item.title, item.lexile, item.wordNum, item.stage, item.type,
+                        item.typeId)
+                    }
+                  })
+                }
+              }
+              .scrollBarWidth(0)
+              .onReachEnd(() => {
+                this.currentPage++
+                this.getArticleList()
+                if (this.articlesList.length >= this.articleTotal) {
+                  promptAction.showToast({ message: '已展示所有相关文章' })
                 }
               })
+              .edgeEffect(EdgeEffect.Spring)
+              .width("100%")
             }
+            .onRefreshing(() => {
+              this.onRefresh()
+            })
             .width("75%")
           }
           .alignItems(HorizontalAlign.Start)
@@ -264,46 +309,6 @@ struct LibraryPage {
         .width('100%')
         .height("95%")
         .backgroundColor('#FEFFFF')
-
-        // 文章列表
-        //   Column({ space: 16 }) {
-        //     ForEach(this.articles, (article: articlesType) => {
-        //       Column({ space: 8 }) {
-        //         Text(article.title)
-        //           .fontSize(16)
-        //           .fontWeight(FontWeight.Bold)
-        //           .fontColor('#333333')
-        //           .width('100%')
-        //
-        //         Row() {
-        //           Text('难度:' + article.difficulty)
-        //             .fontSize(12)
-        //             .fontColor('#666666')
-        //
-        //           Text(article.words + '词')
-        //             .fontSize(12)
-        //             .fontColor('#666666')
-        //             .margin({ left: 8 })
-        //
-        //           Text(article.category)
-        //             .fontSize(12)
-        //             .fontColor('#666666')
-        //             .margin({ left: 8 })
-        //         }
-        //         .width('100%')
-        //       }
-        //       .width('100%')
-        //       .padding(16)
-        //       .backgroundColor('#FFFFFF')
-        //       .borderRadius(12)
-        //     })
-        //   }
-        //   .width('90%')
-        //   .margin({ bottom: 24 })
-        // }
-        // .width('100%')
-        // .alignItems(HorizontalAlign.Center)
-        // .backgroundColor('#F7F8FA')
       }
       .width('100%')
       .height('100%')
@@ -312,7 +317,7 @@ struct LibraryPage {
 
   @Builder
   ArticleCardListItem(cardCover: ResourceStr, cardTitle: string, difficulty: number, wordNum: number, stage: string,
-    type: string) {
+    type: string, typeId: number) {
     Row() {
       // 左侧图片 标题 难度 词汇
       Row() {
@@ -365,30 +370,32 @@ struct LibraryPage {
       })
 
       // 右侧阶段标识和类型标识
-      Row() {
-        Text(stage)
-          .fontSize(10)
-          .fontColor("#FEF9F3")
+      if (stage.length > 0) {
+        Row() {
+          Text(stage)
+            .fontSize(10)
+            .fontColor("#FEF9F3")
+        }
+        .justifyContent(FlexAlign.Center)
+        .backgroundColor("#F38D45")
+        .justifyContent(FlexAlign.Center)
+        .width(25)
+        .height(20)
+        .borderRadius({ topRight: 10 })
+        .position({
+          right: 0,
+          top: 0
+        })
+        .zIndex(10)
       }
-      .justifyContent(FlexAlign.Center)
-      .backgroundColor("#F38D45")
-      .justifyContent(FlexAlign.Center)
-      .width(25)
-      .height(20)
-      .borderRadius({ topRight: 10 })
-      .position({
-        right: 0,
-        top: 0
-      })
-      .zIndex(10)
-
       Row() {
         Text(type)
           .fontSize(10)
           .fontColor("#FEF9F3")
       }
       .justifyContent(FlexAlign.Center)
-      .backgroundColor("#F38D45")
+      // .backgroundColor("#F38D45")
+      .backgroundColor(this.cardTypeColor(typeId))
       .width(55)
       .height(14)
       .borderRadius({ topLeft: 10, bottomRight: 10 })
