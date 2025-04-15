@@ -1,66 +1,12 @@
 import { promptAction, router } from '@kit.ArkUI';
 import { AVPlayer, http } from '../utils';
-import json from '@ohos.util.json';
-import { JSON } from '@kit.ArkTS';
-
-interface SentenceByXFListType {
-  word: string;
-  wb: number;
-  we: number;
-}
-
-interface WordDataType {
-  word: string,
-  isActive: boolean,
-  index: number
-}
-
-interface CulturalKnowledgeDetailContent {
-  pageNum: number;
-  imgUrl: string;
-  audioUrl: string;
-  audioDuration: number;
-  sentence: string;
-  frameType: number;
-  sentenceByXFList: SentenceByXFListType[];
-}
-
-interface CulturalKnowledgeDetailQuestionAnswerType {
-  answer: string;
-  audio: string;
-}
-
-interface CulturalKnowledgeDetailQuestionType {
-  question: string;
-  questionAudio: string;
-  questionImg: string;
-  correctAnswer: string;
-  answerList: CulturalKnowledgeDetailQuestionAnswerType[];
-}
-
-interface CulturalKnowledgeDetailAllDataType {
-  id: number;
-  cover: string;
-  title: string;
-  wordNum: number;
-  readCount: number;
-  bgmUrl: string;
-  typeId: number;
-  typeName: string;
-  level: number;
-  talkItContent: string;
-  talkItAudio: string;
-  imgList: string[];
-  contentList: CulturalKnowledgeDetailContent[];
-  questionList: CulturalKnowledgeDetailQuestionType[];
-  readReportId: number;
-  readId: number;
-}
-
-interface culturalKnowledgeListType {
-  title: string
-  aid: number
-}
+import {
+  CulturalKnowledgeDetailAllDataType,
+  CulturalKnowledgeDetailContent,
+  culturalKnowledgeListType,
+  SentenceByXFListType,
+  WordDataType
+} from '../model';
 
 @Entry
 @Component
@@ -74,11 +20,15 @@ struct ReadCulturalKnowledgeDetailPage {
   @State selectedIndex: number = 0
   @State setTimeId: number = 0
   @State fontsize: number = 18
+  @State handFirstX:number = 10
+  @State handFirstY:number = 30
   @State videoVoiceChange: boolean = true
   @State videoStartChange: boolean = true
   @State relatedFunctionControlComponents: boolean = false
   @State setFontSizeControl: boolean = false
   @State setSpeedControl: boolean = false
+  // 当前音频是否播放完毕
+  @State videoIsOver: boolean = false
   @State pageTitle: string = ''
   @State articleImg: string = ""
   @State speedText: string = "小"
@@ -164,6 +114,7 @@ struct ReadCulturalKnowledgeDetailPage {
         // 同步更新当前播放时间
         this.syncAudioTime();
         this.isAudioPlaying = true;
+        this.videoIsOver = false
       } catch (error) {
         console.error("播放文本音频时出错:", error);
       }
@@ -177,21 +128,27 @@ struct ReadCulturalKnowledgeDetailPage {
       this.currentTime = Math.floor(currentAudioTime as number); // 更新currentTime为当前音频播放时间的整数部分
       this.highlightCurrentWord(this.currentTime); // 更新高亮显示的单词
       console.log("itcast_interview_pass+", 'ReadCulturalKnowledgeDetailPage', '168', '1');
-
-      // 停止音频播放和定时器的条件
-      if (!this.isAudioPlaying ||
-        this.activeWordIndex >= this.culturalKnowledgeContentWords[this.currentIndex].length - 1) {
-        clearInterval(intervalId); // 停止定时器
-        this.onAudioPlayEnd()
-        console.log("音频播放结束或已到达边界，停止更新");
+      this.videoIsOver = this.contentAudioPlayer.getVideoStateIsOver()
+      if (this.videoIsOver) {
+        this.cleanInterval()
       }
     }, 100); // 每100毫秒更新一次
     this.setTimeId = intervalId
   }
 
+  // 清理计时器
+  cleanInterval() {
+    if (this.videoIsOver) {
+      clearInterval(this.setTimeId); // 停止定时器
+      this.onAudioPlayEnd()
+      console.log("音频播放结束或已到达边界，停止更新");
+    }
+  }
+
   // 当音频播放完毕时，更新状态并停止定时器
   onAudioPlayEnd() {
     this.isAudioPlaying = false; // 标记音频播放已结束
+    this.videoIsOver = true
     console.log("音频播放结束，停止更新");
   }
 
@@ -202,7 +159,7 @@ struct ReadCulturalKnowledgeDetailPage {
     // 检查数据是否有效
     if (!sentenceTimeList) {
       console.error("当前索引的时间标记数据无效:", this.currentIndex);
-      return; // 如果无效，则直接返回，不进行后续操作
+      return;
     }
 
     const words = this.culturalKnowledgeContentWords[this.currentIndex];
@@ -352,6 +309,8 @@ struct ReadCulturalKnowledgeDetailPage {
                           .width(40)
                           .onClick(() => {
                             this.contentAudioPlayer.rePlay()
+                            this.videoIsOver = false
+                            this.syncAudioTime()
                           })
                         // 暂停 or 继续
                         Image(this.videoStartChange ? $r("app.media.icon_video_pause") :
@@ -404,6 +363,7 @@ struct ReadCulturalKnowledgeDetailPage {
           .barMode(BarMode.Fixed)
           .barHeight(0)
           .onChange((index: number) => {
+            this.videoIsOver = false
             this.currentPage = index + 1
             this.currentIndex = index
             this.contentAudioPlayer.setTabChange(true)
@@ -427,6 +387,39 @@ struct ReadCulturalKnowledgeDetailPage {
           this.setSpeedControl = false
         }
       })
+
+      if (this.videoIsOver) {
+        Column({ space: 5 }) {
+          Image($r('app.media.icon_left_arrow_gradine_violet'))
+            .width(80)
+            .position({
+              right: 30,
+              bottom: 70
+            })
+            .zIndex(10)
+          Image($r('app.media.icon_hand'))
+            .width(40)
+            .position({
+              right: this.handFirstX,
+              bottom: this.handFirstY,
+            })
+            .zIndex(10)
+            .onAppear(()=> {
+              animateTo({
+                duration: 3000,
+                iterations: -1,
+              }, () => {
+                this.handFirstX = 70
+              })
+            })
+        }
+        .position({
+          right: 30,
+          bottom: 30
+        })
+        .zIndex(10)
+        .borderWidth(1)
+      }
 
       // 底部控制组件展示
       if (this.relatedFunctionControlComponents) {
@@ -579,6 +572,7 @@ struct ReadCulturalKnowledgeDetailPage {
                 Text(String(this.speedNumber))
                   .fontSize(10)
               }
+
               Text("倍速调整")
                 .fontSize(16)
             }

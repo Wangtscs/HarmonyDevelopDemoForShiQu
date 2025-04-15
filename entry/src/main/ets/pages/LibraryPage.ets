@@ -1,33 +1,6 @@
 import { http } from '../utils'
 import { promptAction } from '@kit.ArkUI';
-
-interface articlesTypeList {
-  id: number;
-  title: string;
-  wordNum: number;
-  lexile: number;
-  typeId: number;
-  type: string;
-  cover: string;
-  clickRatio: null;
-  accuracy: null;
-  accuracyRatio: null;
-  color: string;
-  isRead: number;
-  readTime: null;
-  stage: string;
-  perception: null;
-}
-
-interface articlesType {
-  total: number
-  list: articlesTypeList[]
-}
-
-interface articleTypeListSty {
-  id: number
-  type: string
-}
+import { articlesType, articlesTypeList, articleTypeListSty } from '../model';
 
 @Entry
 @Component
@@ -45,7 +18,6 @@ struct LibraryPage {
   @State articlesList: articlesTypeList[] = []
   @State selectList: number[] = []
   @State articleTotal: number = 0
-
   scroller: Scroller = new Scroller()
   @State isRefreshing: boolean = false
   // 加载中
@@ -144,6 +116,7 @@ struct LibraryPage {
         return "#09744A";
     }
   }
+
   build() {
     Column() {
       Column() {

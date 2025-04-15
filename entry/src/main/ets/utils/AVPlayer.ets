@@ -6,6 +6,7 @@ export class AVPlayer {
   private avplayer: media.AVPlayer | null = null; // 初始为 null
   private isRelease: boolean = true; // 是否在播放完毕后释放资源
   private tabChange: boolean = false;
+  private isOver: boolean = false;
 
   // 异步方法来创建并返回 AVPlayer
   async createPlayer(url: string): Promise<void> {
@@ -57,6 +58,7 @@ export class AVPlayer {
         case 'prepared':
           console.info('itcast_interview_pass: AVPlayer 状态: prepared，播放器准备好');
           this.tabChange = false
+          this.isOver = false
           avPlayer.play(); // 开始播放
           break;
 
@@ -70,6 +72,7 @@ export class AVPlayer {
 
         case 'completed':
           console.info('itcast_interview_pass: AVPlayer 状态: completed，音频播放完成');
+          this.isOver = true
           if (this.isLooping) {
             avPlayer.seek(0); // 循环播放时，播放结束后从头开始
             avPlayer.play()
@@ -113,9 +116,9 @@ export class AVPlayer {
 
   getTimeUpdate(): number | undefined {
     if (this.avplayer && this.avplayer.currentTime !== undefined) {
-      return this.avplayer.currentTime as number;  // 假设 currentTime 是 number 类型
+      return this.avplayer.currentTime as number; // 假设 currentTime 是 number 类型
     }
-    return undefined;  // 如果 avplayer 不存在或 currentTime 未定义，返回 undefined
+    return undefined; // 如果 avplayer 不存在或 currentTime 未定义，返回 undefined
   }
 
 
@@ -165,14 +168,20 @@ export class AVPlayer {
   rePlay() {
     if (this.avplayer) {
       this.avplayer.seek(0)
+      this.isOver = false
       this.avplayer.play()
     }
   }
 
   // 设置播放速度
-  setSpeed(speed:media.PlaybackSpeed){
+  setSpeed(speed: media.PlaybackSpeed) {
     if (this.avplayer) {
       this.avplayer.setSpeed(speed)
     }
+  }
+
+  // 获取当前音频是否播放完毕
+  getVideoStateIsOver(){
+    return this.isOver
   }
 }

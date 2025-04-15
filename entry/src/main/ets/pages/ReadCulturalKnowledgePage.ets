@@ -1,9 +1,5 @@
 import { router } from '@kit.ArkUI';
-
-interface culturalKnowledgeListType {
-  title: string
-  aid: number
-}
+import { culturalKnowledgeListType } from '../model';
 
 @Entry
 @Component
