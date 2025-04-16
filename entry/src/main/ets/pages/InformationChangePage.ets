@@ -150,6 +150,12 @@ struct InformationChangePage {
             bottom: 10,
             top: 10
           })
+          .shadow({
+            radius: 20,
+            color: "#0A59F7",
+            offsetX: 0,
+            offsetY: 15
+          })
           .onClick(() => {
             promptAction.showDialog({
               message: `${this.nickName} 是一位 ${this.isMaleSelected ? '男生' : '女生'}，${this.isMaleSelected ? '他' :
@@ -198,6 +204,7 @@ struct InformationChangePage {
                   this.showDatePicker = false
                 })
                 .backgroundColor(Color.Transparent)
+
             }
             .width('100%')
             .justifyContent(FlexAlign.SpaceBetween)
