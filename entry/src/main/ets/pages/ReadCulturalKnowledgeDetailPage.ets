@@ -368,6 +368,7 @@ struct ReadCulturalKnowledgeDetailPage {
             this.currentIndex = index
             this.contentAudioPlayer.setTabChange(true)
             this.playContentTextAudio(index)
+            this.videoIsOver = false
           })
           .fadingEdge(false)
           .width("100%")
@@ -502,6 +503,9 @@ struct ReadCulturalKnowledgeDetailPage {
               .onClick(() => {
                 this.fontText = "小"
                 this.fontsize = 14
+                promptAction.showToast({
+                  message:'切换成功'
+                })
               })
               .width(80)
               .height(50)
@@ -516,6 +520,9 @@ struct ReadCulturalKnowledgeDetailPage {
               .onClick(() => {
                 this.fontText = "标准"
                 this.fontsize = 18
+                promptAction.showToast({
+                  message:'切换成功'
+                })
               })
               .width(80)
               .height(50)
@@ -530,6 +537,9 @@ struct ReadCulturalKnowledgeDetailPage {
               .onClick(() => {
                 this.fontText = "大"
                 this.fontsize = 24
+                promptAction.showToast({
+                  message:'切换成功'
+                })
               })
               .width(80)
               .height(50)
@@ -587,6 +597,9 @@ struct ReadCulturalKnowledgeDetailPage {
                 this.speedText = "慢"
                 this.contentAudioPlayer.setSpeed(0)
                 this.speedNumber = 0.75
+                promptAction.showToast({
+                  message:'切换成功'
+                })
               })
               .width(80)
               .height(50)
@@ -602,6 +615,9 @@ struct ReadCulturalKnowledgeDetailPage {
                 this.speedText = "标准"
                 this.contentAudioPlayer.setSpeed(1)
                 this.speedNumber = 1
+                promptAction.showToast({
+                  message:'切换成功'
+                })
               })
               .width(80)
               .height(50)
@@ -617,6 +633,10 @@ struct ReadCulturalKnowledgeDetailPage {
                 this.speedText = "快"
                 this.contentAudioPlayer.setSpeed(2)
                 this.speedNumber = 1.25
+                promptAction.showToast({
+                  message:'切换成功',
+
+                })
               })
               .width(80)
               .height(50)
