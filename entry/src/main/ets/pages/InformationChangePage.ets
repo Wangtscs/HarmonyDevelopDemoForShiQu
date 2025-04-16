@@ -143,6 +143,7 @@ struct InformationChangePage {
       .margin({ top: 20 })
       .width("80%")
 
+      // 完成按钮
       Column() {
         Button("完成")
           .width("100%")
@@ -251,6 +252,8 @@ struct InformationChangePage {
     .width('100%')
   }
 
+
+  // 生日选择按钮样式
   @Builder
   selectBirthdayButStyle() {
     Row() {
@@ -264,6 +267,7 @@ struct InformationChangePage {
     .justifyContent(FlexAlign.SpaceBetween)
   }
 
+  // 性别选择按钮样式
   @Builder
   sexSelectionButStyle(img: Resource, title: string) {
     Row({ space: 8 }) {

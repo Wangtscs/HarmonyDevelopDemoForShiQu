@@ -103,6 +103,7 @@ struct ReadCulturalKnowledgeDetailPage {
 
   // 播放文本音频并同步更新currentTime
   async playContentTextAudio(index: number) {
+    this.videoIsOver = false
     if (this.culturalKnowledgeContentAllAudioUrl.length > 0) {
       try {
         this.contentAudioPlayer.stop()
@@ -369,6 +370,7 @@ struct ReadCulturalKnowledgeDetailPage {
             this.contentAudioPlayer.setTabChange(true)
             this.playContentTextAudio(index)
             this.videoIsOver = false
+            this.videoStartChange = true
           })
           .fadingEdge(false)
           .width("100%")

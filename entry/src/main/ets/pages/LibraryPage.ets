@@ -121,7 +121,6 @@ struct LibraryPage {
     Column() {
       Column() {
         // 标题
-
         Row() {
           Text('文库')
             .fontSize(16)// .fontWeight(FontWeight.Bold)
